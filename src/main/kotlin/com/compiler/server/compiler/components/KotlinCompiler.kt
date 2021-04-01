@@ -40,11 +40,11 @@ class KotlinCompiler(
 
   class Compiled(val files: Map<String, ByteArray> = emptyMap(), val mainClass: String? = null)
 
-  fun run(files: List<KtFile>, coreEnvironment: KotlinCoreEnvironment, args: String): ExecutionResult {
+  fun run(files: List<KtFile>, coreEnvironment: KotlinCoreEnvironment, args: String, userInput: String): ExecutionResult {
     return execute(files, coreEnvironment) { output, compiled ->
       val mainClass = JavaRunnerExecutor::class.java.name
       val arguments = listOfNotNull(compiled.mainClass) + args.split(" ")
-      javaExecutor.execute(argsFrom(mainClass, output, arguments))
+      javaExecutor.execute(argsFrom(mainClass, output, arguments), userInput)
         .asExecutionResult()
     }
   }

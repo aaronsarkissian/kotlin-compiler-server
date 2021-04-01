@@ -20,8 +20,9 @@ class JavaExecutor {
     const val EXECUTION_TIMEOUT = 10000L
   }
 
-  fun execute(args: List<String>): ProgramOutput {
+  fun execute(args: List<String>, userInput: String = ""): ProgramOutput {
     return Runtime.getRuntime().exec(args.toTypedArray()).use {
+      outputStream.write(userInput.toByteArray())
       outputStream.close()
 
       val standardOut = InputStreamReader(this.inputStream).buffered()

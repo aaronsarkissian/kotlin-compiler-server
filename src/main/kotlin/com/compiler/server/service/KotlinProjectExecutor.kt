@@ -25,7 +25,7 @@ class KotlinProjectExecutor(
   fun run(project: Project): ExecutionResult {
     return kotlinEnvironment.environment { environment ->
       val files = getFilesFrom(project, environment).map { it.kotlinFile }
-      kotlinCompiler.run(files, environment, project.args)
+      kotlinCompiler.run(files, environment, project.args, project.userInput)
     }
   }
 

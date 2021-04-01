@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Project(
   val args: String = "",
+  val userInput: String = "",
   val files: List<ProjectFile> = listOf(),
   val confType: ProjectType = ProjectType.JAVA
 )
