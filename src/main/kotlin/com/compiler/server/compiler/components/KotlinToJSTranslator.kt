@@ -6,16 +6,17 @@ import com.compiler.server.model.toExceptionDescriptor
 import component.KotlinEnvironment
 import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.ir.backend.js.MainModule
 import org.jetbrains.kotlin.ir.backend.js.compile
+import org.jetbrains.kotlin.ir.backend.js.prepareAnalyzedSourceModule
+import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.js.config.JsConfig
 import org.jetbrains.kotlin.js.facade.K2JSTranslator
 import org.jetbrains.kotlin.js.facade.MainCallParameters
 import org.jetbrains.kotlin.js.facade.TranslationResult
 import org.jetbrains.kotlin.js.facade.exceptions.TranslationException
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.resolve.CompilerEnvironment
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class KotlinToJSTranslator(
@@ -61,6 +62,7 @@ class KotlinToJSTranslator(
     val configuration = JsConfig(
       currentProject,
       kotlinEnvironment.jsConfiguration,
+      CompilerEnvironment,
       kotlinEnvironment.JS_METADATA_CACHE,
       kotlinEnvironment.JS_LIBRARIES.toSet()
     )
@@ -92,31 +94,32 @@ class KotlinToJSTranslator(
     coreEnvironment: KotlinCoreEnvironment
   ): TranslationJSResult {
     val currentProject = coreEnvironment.project
-    val configuration = JsConfig(
-      currentProject,
-      kotlinEnvironment.jsConfiguration,
-      kotlinEnvironment.JS_METADATA_CACHE,
-      kotlinEnvironment.JS_LIBRARIES.toSet()
-    )
 
-    val result = compile(
+    val sourceModule = prepareAnalyzedSourceModule(
       currentProject,
-      MainModule.SourceFiles(files),
-      AnalyzerWithCompilerReport(configuration.configuration),
-      configuration.configuration,
-      kotlinEnvironment.jsIrPhaseConfig,
-      allDependencies = kotlinEnvironment.jsIrResolvedLibraries,
+      files,
+      kotlinEnvironment.jsConfiguration,
+      kotlinEnvironment.JS_LIBRARIES,
       friendDependencies = emptyList(),
-      propertyLazyInitialization = false,
-      mainArguments = arguments
+      analyzer = AnalyzerWithCompilerReport(kotlinEnvironment.jsConfiguration),
+      icUseGlobalSignatures = false,
+      icUseStdlibCache = false,
+      icCache = emptyMap()
     )
-    val jsCode = result.jsCode!!.mainModule
+    val result = compile(
+      sourceModule,
+      kotlinEnvironment.jsIrPhaseConfig,
+      propertyLazyInitialization = false,
+      mainArguments = arguments,
+      irFactory = IrFactoryImpl
+    )
+    val jsCode = result.outputs!!.jsCode
 
     val listLines = jsCode
       .lineSequence()
       .toMutableList()
 
-    listLines.add(listLines.size - BEFORE_MAIN_CALL_LINE, "if (isRewrite) output = new BufferedOutput_0()")
+    listLines.add(listLines.size - BEFORE_MAIN_CALL_LINE, "if (kotlin.isRewrite) output = new BufferedOutput_0()")
     listLines.add(listLines.size - BEFORE_MAIN_CALL_LINE, "_.output = output")
     listLines.add(listLines.size - 1, JS_IR_CODE_BUFFER)
 

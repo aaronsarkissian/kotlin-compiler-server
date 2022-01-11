@@ -9,8 +9,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
-import common.model.Completion
 import component.KotlinEnvironment
+import model.Completion
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.cli.jvm.compiler.CliBindingTrace
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
@@ -42,8 +42,6 @@ import org.jetbrains.kotlin.resolve.lazy.ResolveSession
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactory
 import org.jetbrains.kotlin.resolve.lazy.declarations.FileBasedDeclarationProviderFactory
 import org.springframework.stereotype.Component
-import java.util.ArrayList
-import kotlin.Comparator
 
 @Component
 class ErrorAnalyzer(
@@ -107,6 +105,7 @@ class ErrorAnalyzer(
     val configuration = JsConfig(
       project,
       kotlinEnvironment.jsConfiguration,
+      CompilerEnvironment,
       kotlinEnvironment.JS_METADATA_CACHE,
       kotlinEnvironment.JS_LIBRARIES.toSet()
     )
@@ -142,7 +141,8 @@ class ErrorAnalyzer(
     }.toMap()
   }
 
-  fun isOnlyWarnings(errors: Map<String, List<ErrorDescriptor>>) = errors.none { it.value.any { error -> error.severity == ProjectSeveriry.ERROR } }
+  fun isOnlyWarnings(errors: Map<String, List<ErrorDescriptor>>) =
+    errors.none { it.value.any { error -> error.severity == ProjectSeveriry.ERROR } }
 
   private fun anylizeErrorsFrom(file: PsiFile, isJs: Boolean): List<ErrorDescriptor> {
     class Visitor : PsiElementVisitor() {
@@ -226,7 +226,11 @@ class ErrorAnalyzer(
               className = "red_wavy_line"
             }
             val firstRange = textRanges.next()
-            val interval = TextInterval.from(firstRange.startOffset, firstRange.endOffset, diagnostic.psiFile.viewProvider.document!!)
+            val interval = TextInterval.from(
+              firstRange.startOffset,
+              firstRange.endOffset,
+              diagnostic.psiFile.viewProvider.document!!
+            )
             diagnostic.psiFile.name to ErrorDescriptor(
               interval = interval,
               message = render,

@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.cli.js.K2JsIrCompiler
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
+import org.jetbrains.kotlin.cli.jvm.configureAdvancedJvmOptions
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
@@ -65,7 +66,7 @@ class KotlinEnvironment(
   }
 
   private val configuration = createConfiguration()
-  val jsConfiguration = configuration.copy().apply {
+  val jsConfiguration: CompilerConfiguration = configuration.copy().apply {
     put(CommonConfigurationKeys.MODULE_NAME, "moduleId")
     put(JSConfigurationKeys.MODULE_KIND, ModuleKind.PLAIN)
     put(JSConfigurationKeys.LIBRARIES, JS_LIBRARIES)
@@ -89,6 +90,7 @@ class KotlinEnvironment(
 
   val jsIrResolvedLibraries = jsResolveLibraries(
     JS_LIBRARIES,
+    emptyList(),
     object : Logger {
       override fun error(message: String) {}
       override fun fatal(message: String): Nothing {
@@ -114,12 +116,13 @@ class KotlinEnvironment(
       val messageCollector = MessageCollector.NONE
       put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
       put(CommonConfigurationKeys.MODULE_NAME, "web-module")
-      with(K2JVMCompilerArguments()) {
-        put(JVMConfigurationKeys.DISABLE_PARAM_ASSERTIONS, noParamAssertions)
-        put(JVMConfigurationKeys.DISABLE_CALL_ASSERTIONS, noCallAssertions)
-        put(JSConfigurationKeys.TYPED_ARRAYS_ENABLED, true)
-      }
+      put(JSConfigurationKeys.TYPED_ARRAYS_ENABLED, true)
+
       languageVersionSettings = arguments.toLanguageVersionSettings(messageCollector)
+
+      // it uses languageVersionSettings that was set above
+      configureAdvancedJvmOptions(arguments)
+      put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
     }
   }
 }

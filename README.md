@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.com/AlexanderPrendota/kotlin-compiler-server.svg?branch=master)](https://travis-ci.com/AlexanderPrendota/kotlin-compiler-server)
 ![Java CI](https://github.com/AlexanderPrendota/kotlin-compiler-server/workflows/Java%20CI/badge.svg)
 ![TC status](https://img.shields.io/teamcity/build/s/Kotlin_KotlinPlayground_KotlinCompilerServer_Build?label=TeamCity%20build) 
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.4.30-orange.svg) ](https://kotlinlang.org/) 
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.6.10-orange.svg) ](https://kotlinlang.org/) 
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/prendota/kotlin-compiler-server)
 
@@ -60,7 +60,7 @@ curl -X POST \
     "files": [
         {
             "name": "File.kt",
-            "text": "fun main(args: Array<String>) {\n    println(\"123\")\n}"
+            "text": "fun main() {\n    println(\"123\")\n}"
         }
     ]
 }'
@@ -77,7 +77,7 @@ curl -X POST \
       "files": [
         {
           "name": "File.kt",
-          "text": "fun main(args: Array<String>) {\n    println(args[0])\n }"
+          "text": "fun main() {\n    println(args[0])\n }"
         }
       ]
 }'
@@ -117,7 +117,7 @@ curl -X POST \
   "files": [
     {
       "name": "File.kt",
-      "text": "fun main() {\n    val sinusoid = "sinusoid"\n    val s = sin\n}"
+      "text": "fun main() {\n    val sinusoid = \"sinusoid\"\n    val s = sin\n}"
     }
   ]
 }'
@@ -180,6 +180,28 @@ Set the environment variables
 | -------------------|----------------------|
 | ACCESS_CONTROL_ALLOW_ORIGIN_VALUE| *|
 | ACCESS_CONTROL_ALLOW_HEADER_VALUE| *|
+
+## Unsuccessful execution logs
+
+In case of an unsuccessful execution in the standard output will be the event with INFO level:
+```json
+{
+  "date_time": "31/Aug/2021:11:49:45 +03:00",
+  "@version": "1",
+  "message": "Code execution is complete.",
+  "logger_name": "com.compiler.server.service.KotlinProjectExecutor",
+  "thread_name": "http-nio-8080-exec-1",
+  "level": "INFO",
+  "level_value": 20000,
+  "hasErrors": true,
+  "confType": "JAVA",
+  "kotlinVersion": "$koltinVersion"
+}
+```
+The following property in `gradle.properties` can be used to disable execution events:
+```
+systemProp.executorLogs=false
+```
 
 ## Kotlin release guide :rocket:
 

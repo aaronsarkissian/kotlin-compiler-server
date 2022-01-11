@@ -14,6 +14,10 @@ open class ExecutionResult(
   fun addWarnings(warnings: Map<String, List<ErrorDescriptor>>) {
     errors = warnings
   }
+
+  fun hasErrors() = textWithError() || exception != null || errors.any { (_, value) -> value.any { it.severity == ProjectSeveriry.ERROR } }
+
+  private fun textWithError() = text.startsWith(ERROR_STREAM_START)
 }
 
 data class TranslationJSResult(
